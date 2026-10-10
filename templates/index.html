@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Realce de Documentos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <p class="eyebrow">Processamento de imagens e sinais</p>
+        <h1>Realce de texto em documentos</h1>
+        <p class="lead">
+          Envie a foto de um documento. O sistema realça o texto para deixá-lo
+          mais legível e compara a nitidez da imagem original com a imagem
+          gerada.
+        </p>
+      </header>
+
+      <section class="card upload-card">
+        <form id="upload-form">
+          <label class="dropzone" for="image-input" id="dropzone">
+            <input
+              id="image-input"
+              name="image"
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/bmp,image/tiff,image/webp"
+              required
+            />
+            <span class="dropzone-title">Clique ou arraste uma imagem</span>
+            <span class="dropzone-hint">PNG, JPG, BMP, TIF ou WEBP · até 12 MB</span>
+            <span class="filename" id="filename">Nenhum arquivo selecionado</span>
+          </label>
+          <button type="submit" id="submit-btn">Processar documento</button>
+        </form>
+        <p class="status" id="status" hidden></p>
+      </section>
+
+      <section class="results" id="results" hidden>
+        <div class="images">
+          <article class="image-panel">
+            <h2>Imagem original</h2>
+            <img id="original-preview" alt="Documento original enviado" />
+          </article>
+          <article class="image-panel">
+            <h2>Imagem realçada</h2>
+            <img id="enhanced-preview" alt="Documento após o realce de texto" />
+          </article>
+        </div>
+
+        <aside class="metrics" id="metrics">
+          <h2>Avaliação de nitidez</h2>
+          <p class="verdict" id="verdict"></p>
+          <dl>
+            <div>
+              <dt>Nitidez original</dt>
+              <dd id="sharp-original">—</dd>
+            </div>
+            <div>
+              <dt>Nitidez realçada</dt>
+              <dd id="sharp-enhanced">—</dd>
+            </div>
+            <div>
+              <dt>Melhoria</dt>
+              <dd id="improvement">—</dd>
+            </div>
+            <div>
+              <dt>Critério da disciplina</dt>
+              <dd>texto pelo menos 80% mais nítido</dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+    </div>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>
