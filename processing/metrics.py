@@ -33,6 +33,12 @@ def rms_contrast(gray: np.ndarray) -> float:
     return float(np.std(pixels))
 
 
+def grayscale_histogram(gray: np.ndarray) -> list[int]:
+    """Contagem de pixels por intensidade (0 a 255) em imagem em tons de cinza."""
+    hist = cv2.calcHist([gray], [0], None, [256], [0, 256])
+    return [int(value) for value in hist.flatten()]
+
+
 def combined_sharpness(gray: np.ndarray) -> float:
     """
     Combina Laplaciano e Tenengrad.
@@ -77,6 +83,10 @@ def evaluate_sharpness(
         "improvement_percent": round(improvement_percent, 2),
         "threshold_percent": threshold_percent,
         "meets_criterion": meets_criterion,
+        "histograms": {
+            "original": grayscale_histogram(original_gray),
+            "enhanced": grayscale_histogram(enhanced_gray),
+        },
         "verdict": (
             "O texto ficou pelo menos 80% mais nítido."
             if meets_criterion

@@ -15,7 +15,8 @@ O sistema recebe essa foto, tenta deixar as letras mais fáceis de ler e depois 
 3. Depois de alguns segundos, duas figuras:
    - à esquerda, o documento **como chegou**;
    - à direita, o documento **depois do tratamento**.
-4. Um quadro com números de nitidez e uma frase dizendo se a melhoria passou do critério combinado pelo grupo: o texto precisa ficar **pelo menos 80% mais nítido**.
+4. Dois **histogramas em escala de cinza** (original e realçada): cada um mostra quantos pixels existem em cada tom, do preto ao branco.
+5. Um quadro com números de nitidez e uma frase dizendo se a melhoria passou do critério combinado pelo grupo: o texto precisa ficar **pelo menos 80% mais nítido**.
 
 ## O que acontece “por baixo”
 

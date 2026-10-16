@@ -8,8 +8,8 @@ O critério de avaliação adotado no backend considera a imagem **melhor** quan
 
 | Camada | Tecnologia | Papel |
 | --- | --- | --- |
-| Front-end | HTML, CSS e JavaScript | Upload da imagem, estado de processamento e exibição lado a lado |
-| Back-end | Python 3, Flask, OpenCV, NumPy, Pillow | Pipeline de realce, métricas de nitidez e API JSON |
+| Front-end | HTML, CSS e JavaScript | Upload da imagem, estado de processamento, imagens lado a lado e histogramas em tons de cinza |
+| Back-end | Python 3, Flask, OpenCV, NumPy, Pillow | Pipeline de realce, métricas de nitidez, histogramas de cinza e API JSON |
 | Entrega | Execução local em `http://127.0.0.1:5000` | Demonstração em aula sem deploy na nuvem |
 
 ```
@@ -17,7 +17,7 @@ O critério de avaliação adotado no backend considera a imagem **melhor** quan
 ├── app.py                      # API Flask e página inicial
 ├── processing/
 │   ├── enhancement.py          # Pipeline de realce do documento
-│   └── metrics.py              # Comparação de nitidez (critério de 80%)
+│   └── metrics.py              # Nitidez (critério de 80%) e histogramas de cinza
 ├── templates/index.html
 ├── static/style.css
 ├── static/app.js
@@ -38,7 +38,8 @@ O critério de avaliação adotado no backend considera a imagem **melhor** quan
 8. **Binarização adaptativa** — limiar gaussiano local (`block_size=21`). Sem morfologia, para não engrossar o traço.
 9. **Redução com antialias** — volta ao tamanho original com `INTER_AREA`, gerando bordas cinza suaves em vez de escada de pixels.
 10. **Métricas** — Laplaciano + Tenengrad no original e no resultado; percentual de melhoria.
-11. **Resposta** — as duas imagens em PNG Base64 e o veredito do critério de 80%.
+11. **Histogramas** — contagem de pixels por intensidade 0–255 na original convertida para cinza e na imagem realçada.
+12. **Resposta** — as duas imagens em PNG Base64, os histogramas e o veredito do critério de 80%.
 
 ## Fluxo da requisição
 
@@ -56,7 +57,7 @@ flowchart TD
     I -->|não| K[meets_criterion = false]
     J --> L[JSON: original_image, enhanced_image, metrics]
     K --> L
-    L --> M[Front desenha as duas imagens e o painel de métricas]
+    L --> M[Front desenha as duas imagens, os histogramas de cinza e o painel de métricas]
 ```
 
 ### Contrato da API
@@ -77,6 +78,10 @@ flowchart TD
     "improvement_percent": 0,
     "threshold_percent": 80,
     "meets_criterion": true,
+    "histograms": {
+      "original": [0, 0, 0],
+      "enhanced": [0, 0, 0]
+    },
     "verdict": "O texto ficou pelo menos 80% mais nítido."
   }
 }
@@ -89,6 +94,8 @@ melhoria = ((nitidez_realçada − nitidez_original) / nitidez_original) × 100
 ```
 
 Se `melhoria >= 80`, o backend classifica o resultado como texto pelo menos 80% mais nítido.
+
+`metrics.histograms.original` e `metrics.histograms.enhanced` são listas de 256 inteiros: o índice é a intensidade (0 = preto, 255 = branco) e o valor é a quantidade de pixels. A original usa a mesma conversão `BGR → cinza` do restante das métricas.
 
 ## Como executar o projeto
 
