@@ -10,7 +10,12 @@ import numpy as np
 from flask import Flask, jsonify, render_template, request
 from PIL import Image, UnidentifiedImageError
 
-from processing.enhancement import enhance_document
+from processing.enhancement import (
+    DEFAULT_FILTER_ID,
+    enhance_document,
+    get_filter,
+    list_filters,
+)
 from processing.metrics import evaluate_sharpness
 
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp"}
@@ -53,7 +58,11 @@ def encode_png_base64(image: np.ndarray) -> str:
 
 @app.get("/")
 def index():
-    return render_template("index.html")
+    return render_template(
+        "index.html",
+        filters=list_filters(),
+        default_filter=DEFAULT_FILTER_ID,
+    )
 
 
 @app.post("/api/process")
@@ -71,9 +80,12 @@ def process_image():
             }
         ), 400
 
+    filter_id = request.form.get("filter", DEFAULT_FILTER_ID)
+
     try:
+        profile = get_filter(filter_id)
         original = decode_upload(uploaded)
-        enhanced = enhance_document(original)
+        enhanced = enhance_document(original, profile.id)
         metrics = evaluate_sharpness(original, enhanced)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
@@ -86,6 +98,11 @@ def process_image():
             "enhanced_image": encode_png_base64(enhanced),
             "metrics": metrics,
             "filename": uploaded.filename,
+            "filter": {
+                "id": profile.id,
+                "label": profile.label,
+                "description": profile.description,
+            },
         }
     )
 

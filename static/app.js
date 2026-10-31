@@ -13,6 +13,7 @@ const sharpEnhanced = document.getElementById("sharp-enhanced");
 const improvementEl = document.getElementById("improvement");
 const histogramOriginal = document.getElementById("histogram-original");
 const histogramEnhanced = document.getElementById("histogram-enhanced");
+const appliedFilter = document.getElementById("applied-filter");
 
 let lastHistograms = null;
 
@@ -140,8 +141,10 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
+  const selectedFilter = form.querySelector('input[name="filter"]:checked');
   const data = new FormData();
   data.append("image", input.files[0]);
+  data.append("filter", selectedFilter ? selectedFilter.value : "documento_impresso");
 
   submitBtn.disabled = true;
   results.hidden = true;
@@ -164,6 +167,7 @@ form.addEventListener("submit", async (event) => {
     sharpOriginal.textContent = formatNumber(metrics.original.nitidez);
     sharpEnhanced.textContent = formatNumber(metrics.enhanced.nitidez);
     improvementEl.textContent = `${formatNumber(metrics.improvement_percent)}%`;
+    appliedFilter.textContent = payload.filter?.label || "—";
     verdictEl.textContent = metrics.verdict;
     verdictEl.className = "verdict";
     if (metrics.meets_criterion) {

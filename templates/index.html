@@ -18,9 +18,9 @@
         <p class="eyebrow">Processamento de imagens e sinais</p>
         <h1>Realce de texto em documentos</h1>
         <p class="lead">
-          Envie a foto de um documento. O sistema realça o texto para deixá-lo
-          mais legível e compara a nitidez da imagem original com a imagem
-          gerada.
+          Envie a foto de um documento e escolha o filtro mais adequado ao tipo
+          de texto. O sistema realça a imagem e compara a nitidez da original
+          com a gerada.
         </p>
       </header>
 
@@ -38,7 +38,28 @@
             <span class="dropzone-hint">PNG, JPG, BMP, TIF ou WEBP · até 12 MB</span>
             <span class="filename" id="filename">Nenhum arquivo selecionado</span>
           </label>
-          <button type="submit" id="submit-btn">Processar documento</button>
+          <fieldset class="filter-picker">
+            <legend>Escolha o filtro</legend>
+            <div class="filter-options">
+              {% for filter in filters %}
+              <label class="filter-option">
+                <input
+                  type="radio"
+                  name="filter"
+                  value="{{ filter.id }}"
+                  {% if filter.id == default_filter %}checked{% endif %}
+                />
+                <span class="filter-option-card">
+                  <span class="filter-option-label">{{ filter.label }}</span>
+                  <span class="filter-option-desc">{{ filter.description }}</span>
+                </span>
+              </label>
+              {% endfor %}
+            </div>
+          </fieldset>
+          <button type="submit" class="submit-btn" id="submit-btn">
+            Processar documento
+          </button>
         </form>
         <p class="status" id="status" hidden></p>
       </section>
@@ -90,6 +111,10 @@
             <div>
               <dt>Melhoria</dt>
               <dd id="improvement">—</dd>
+            </div>
+            <div>
+              <dt>Filtro aplicado</dt>
+              <dd id="applied-filter">—</dd>
             </div>
             <div>
               <dt>Critério da disciplina</dt>

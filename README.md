@@ -1,6 +1,6 @@
 # Realce de texto em documentos
 
-Sistema web local para a disciplina de **processamento de imagens e sinais**. Recebe a imagem de um documento, realça o texto para aumentar a legibilidade e compara a nitidez da imagem original com a imagem gerada.
+Sistema web local para a disciplina de **processamento de imagens e sinais**. Recebe a imagem de um documento, aplica o **filtro escolhido pelo usuário** para realçar o texto e compara a nitidez da imagem original com a imagem gerada.
 
 O critério de avaliação adotado no backend considera a imagem **melhor** quando o texto fica **pelo menos 80% mais nítido**.
 
@@ -8,7 +8,7 @@ O critério de avaliação adotado no backend considera a imagem **melhor** quan
 
 | Camada | Tecnologia | Papel |
 | --- | --- | --- |
-| Front-end | HTML, CSS e JavaScript | Upload da imagem, estado de processamento, imagens lado a lado e histogramas em tons de cinza |
+| Front-end | HTML, CSS e JavaScript | Escolha do filtro, upload da imagem, estado de processamento, imagens lado a lado e histogramas em tons de cinza |
 | Back-end | Python 3, Flask, OpenCV, NumPy, Pillow | Pipeline de realce, métricas de nitidez, histogramas de cinza e API JSON |
 | Entrega | Execução local em `http://127.0.0.1:5000` | Demonstração em aula sem deploy na nuvem |
 
@@ -16,7 +16,7 @@ O critério de avaliação adotado no backend considera a imagem **melhor** quan
 .
 ├── app.py                      # API Flask e página inicial
 ├── processing/
-│   ├── enhancement.py          # Pipeline de realce do documento
+│   ├── enhancement.py          # Pipelines de realce (filtros nomeados)
 │   └── metrics.py              # Nitidez (critério de 80%) e histogramas de cinza
 ├── templates/index.html
 ├── static/style.css
@@ -26,26 +26,38 @@ O critério de avaliação adotado no backend considera a imagem **melhor** quan
 └── COMO_FUNCIONA.md            # Explicação para quem não é da área
 ```
 
+## Filtros disponíveis
+
+O usuário escolhe o filtro na página. Cada perfil usa o tom (cinza ou binário) e os parâmetros mais adequados ao tipo de texto. Se o campo `filter` não for enviado, o backend usa `documento_impresso`.
+
+- **Documento impresso** (`documento_impresso`) — texto digitado, formulário, comprovante. Denoise NLMeans (`h=7`), CLAHE `2.0`, unsharp `0.8`, limiar adaptativo `blockSize=21` e `C=10`. **Saída binária.**
+- **Letra cursiva** (`letra_cursiva`) — manuscrito e tinta irregular. Filtro bilateral (preserva borda), CLAHE `1.5`, unsharp leve (`0.35`), **sem limiar duro**. **Saída em tons de cinza.**
+- **Traço fino e letra miúda** (`traco_fino`) — corpo pequeno e linhas finas. NLMeans mais fraco (`h=3`), CLAHE `1.8`, unsharp `0.5`, limiar `blockSize=13` e `C=5`. **Saída binária**, mais conservadora com a tinta.
+- **Texto grande e traço grosso** (`texto_grande`) — títulos e letra grande. NLMeans `h=10`, CLAHE `2.0`, unsharp `0.6`, limiar `blockSize=35` e `C=15`. **Saída binária**, para não preencher ocos.
+
 ## Pipeline de processamento
+
+Etapas comuns a todos os filtros; os números e a binarização vêm do perfil escolhido.
 
 1. **Decodificação** — a imagem enviada é lida com Pillow e convertida para BGR (OpenCV).
 2. **Tons de cinza** — o texto é tratado como variação de luminância, não de cor.
 3. **Deskew** — correção de pequena inclinação pelo ângulo do retângulo mínimo dos pixels de texto.
-4. **Redução de ruído** — `fastNlMeansDenoising` brando (`h=7`) para suavizar granulação sem borrar letra pequena.
-5. **Ampliação 2x** — o limiar roda em resolução maior (exceto fotos já grandes) para o traço miúdo ter mais pixels.
-6. **Contraste local (CLAHE)** — equalização adaptativa com `clipLimit=2.0`.
-7. **Nitidez leve (unsharp mask)** — `amount=0.8`, para reforçar borda sem halo grosso.
-8. **Binarização adaptativa** — limiar gaussiano local (`block_size=21`). Sem morfologia, para não engrossar o traço.
-9. **Redução com antialias** — volta ao tamanho original com `INTER_AREA`, gerando bordas cinza suaves em vez de escada de pixels.
-10. **Métricas** — Laplaciano + Tenengrad no original e no resultado; percentual de melhoria.
-11. **Histogramas** — contagem de pixels por intensidade 0–255 na original convertida para cinza e na imagem realçada.
-12. **Resposta** — as duas imagens em PNG Base64, os histogramas e o veredito do critério de 80%.
+4. **Redução de ruído** — NLMeans ou bilateral, conforme o filtro.
+5. **Ampliação 2x** — quando o perfil permite e o maior lado é `<= 2500`, para o traço miúdo ter mais pixels (a letra cursiva não amplia).
+6. **Contraste local (CLAHE)** — equalização adaptativa com `clipLimit` do perfil.
+7. **Nitidez (unsharp mask)** — `amount` do perfil.
+8. **Binarização adaptativa** — só nos filtros de documento impresso, traço fino e texto grande. Sem morfologia.
+9. **Polaridade** — texto escuro em fundo claro.
+10. **Redução com antialias** — se houve upscale, volta ao tamanho original com `INTER_AREA`.
+11. **Métricas** — Laplaciano + Tenengrad no original e no resultado; percentual de melhoria.
+12. **Histogramas** — contagem de pixels por intensidade 0–255 na original convertida para cinza e na imagem realçada.
+13. **Resposta** — as duas imagens em PNG Base64, o filtro aplicado, os histogramas e o veredito do critério de 80%.
 
 ## Fluxo da requisição
 
 ```mermaid
 flowchart TD
-    A[Usuário escolhe a imagem no navegador] --> B[JavaScript envia POST /api/process<br/>multipart/form-data campo image]
+    A[Usuário escolhe a imagem e o filtro] --> B[JavaScript envia POST /api/process<br/>multipart campos image e filter]
     B --> C{Flask valida tipo e tamanho}
     C -->|inválido| D[JSON de erro 400/413]
     D --> E[Front exibe mensagem de falha]
@@ -55,7 +67,7 @@ flowchart TD
     H --> I{Melhoria >= 80%?}
     I -->|sim| J[meets_criterion = true]
     I -->|não| K[meets_criterion = false]
-    J --> L[JSON: original_image, enhanced_image, metrics]
+    J --> L[JSON: original_image, enhanced_image, metrics, filter]
     K --> L
     L --> M[Front desenha as duas imagens, os histogramas de cinza e o painel de métricas]
 ```
@@ -64,12 +76,17 @@ flowchart TD
 
 `POST /api/process`
 
-- **Entrada:** arquivo no campo `image`.
+- **Entrada:** arquivo no campo `image` e id do filtro no campo `filter` (`documento_impresso`, `letra_cursiva`, `traco_fino` ou `texto_grande`).
 - **Saída de sucesso:**
 
 ```json
 {
   "filename": "documento.jpg",
+  "filter": {
+    "id": "documento_impresso",
+    "label": "Documento impresso",
+    "description": "Texto digitado, formulário ou comprovante. Saída em preto e branco."
+  },
   "original_image": "<png em base64>",
   "enhanced_image": "<png em base64>",
   "metrics": {
@@ -119,7 +136,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Abra o navegador em [http://127.0.0.1:5000](http://127.0.0.1:5000), envie a foto de um documento e aguarde o par original / realçado.
+Abra o navegador em [http://127.0.0.1:5000](http://127.0.0.1:5000), escolha o filtro, envie a foto de um documento e aguarde o par original / realçado.
 
 Para encerrar o servidor, use `Ctrl+C` no terminal.
 

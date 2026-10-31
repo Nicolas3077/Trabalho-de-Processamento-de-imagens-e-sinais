@@ -11,12 +11,13 @@ O sistema recebe essa foto, tenta deixar as letras mais fáceis de ler e depois 
 ## O que você vê na tela
 
 1. Uma área para **enviar a imagem** (clicando ou arrastando o arquivo).
-2. Um botão **Processar documento**.
-3. Depois de alguns segundos, duas figuras:
+2. Botões para **escolher o filtro** de acordo com o tipo de texto (impresso, cursivo, letra miúda ou letra grande).
+3. Um botão **Processar documento**.
+4. Depois de alguns segundos, duas figuras:
    - à esquerda, o documento **como chegou**;
    - à direita, o documento **depois do tratamento**.
-4. Dois **histogramas em escala de cinza** (original e realçada): cada um mostra quantos pixels existem em cada tom, do preto ao branco.
-5. Um quadro com números de nitidez e uma frase dizendo se a melhoria passou do critério combinado pelo grupo: o texto precisa ficar **pelo menos 80% mais nítido**.
+5. Dois **histogramas em escala de cinza** (original e realçada): cada um mostra quantos pixels existem em cada tom, do preto ao branco.
+6. Um quadro com números de nitidez, o filtro usado e uma frase dizendo se a melhoria passou do critério combinado pelo grupo: o texto precisa ficar **pelo menos 80% mais nítido**.
 
 ## O que acontece “por baixo”
 
@@ -28,9 +29,9 @@ Imagine uma linha de montagem:
 4. Ele **suaviza o granulado** da foto (aquele “chuvisco” de celular).
 5. Ele **aumenta o contraste** nas regiões em que as letras se misturam com o fundo.
 6. Ele **reforça o contorno** das letras, como se passasse um traço mais firme em cima.
-7. Por fim, ele transforma a página em algo próximo de um **documento digitalizado**: letras escuras em fundo claro.
+7. Conforme o filtro, ele ou transforma a página em algo próximo de um **documento digitalizado** (preto e branco) ou **mantém os cinzas** (melhor para letra manuscrita).
 
-Tudo isso gera a imagem da direita.
+Tudo isso gera a imagem da direita. O filtro **não é escolhido sozinho**: você indica o tipo de texto na tela.
 
 ## Como o programa sabe se “melhorou”
 
@@ -51,4 +52,4 @@ Isso não substitui o olho humano. Serve como **nota objetiva** para a disciplin
 
 ## Em uma frase
 
-Você manda a foto de um papel; o programa limpa e reforça as letras; em seguida ele mede se essa nova versão ficou pelo menos 80% mais nítida que a original e mostra os dois resultados na mesma página.
+Você manda a foto de um papel, escolhe o filtro do tipo de texto; o programa limpa e reforça as letras; em seguida ele mede se essa nova versão ficou pelo menos 80% mais nítida que a original e mostra os dois resultados na mesma página.
